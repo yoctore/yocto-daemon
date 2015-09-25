@@ -2,6 +2,7 @@ var async   = require('async');
 var _       = require('lodash');
 var sleep   = require('sleep');
 var Promise = require('promise');
+var logger  = require('yocto-logger');
 var utils   = require('yocto-utils');
 
 /**
@@ -725,7 +726,15 @@ DaemonWrapper.prototype.kill = function (exit) {
 };
 
 // Default export
-module.exports = function (logger) {
-  return new (DaemonWrapper)(logger);
+module.exports = function (l) {
+  // is a valid logger ?
+  if (_.isUndefined(l) || _.isNull(l)) {
+    logger.warning('[ DaemonWrapper.constructor ] - Invalid logger given. Use internal logger');
+    // assign
+    l = logger;
+  }
+
+  // default statement
+  return new (DaemonWrapper)(l);
 };
 
