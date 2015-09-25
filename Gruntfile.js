@@ -14,7 +14,10 @@ module.exports = function (grunt) {
 
     // Uglify our app
     uglify    : {
-      api : {
+      options : {
+        banner  : '/* <%= pkg.name %> - <%= pkg.description %> - V<%= pkg.version %> */\n'
+      },
+      api     : {
         src    : 'src/index.js',
         dest   : 'dist/index.js'
       }

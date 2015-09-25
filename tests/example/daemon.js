@@ -57,7 +57,7 @@ var setd = [
 
 // used vars
 var datapopulate =  setd;
-var limit =  10000;
+var limit =  200;
 var state = true;
 
 // Process
@@ -94,7 +94,7 @@ function efn() {
 daemon.use(pfn);
 daemon.use(efn, true);
 daemon.retry(10);
-daemon.delay(30);
+daemon.delay(10);
 //daemon.retry(3);
 //daemon.delay(5);
 
@@ -105,7 +105,7 @@ if (daemon.isReady(true)) {
   daemon.moreWorkers(5000);
 */
   daemon.start();
-  /*
+  
   var pause = setInterval(function() {
     if (!daemon.queue.paused) {
       console.log('====== PAUSE =======');
@@ -117,12 +117,13 @@ if (daemon.isReady(true)) {
   var resume = setInterval(function() {
     console.log('====== RESUME =======');
     daemon.resume();
-  }, 15000);
+  }, 27500);
 
 
-  var d = setInterval(function() {
+  /*var d = setInterval(function() {
+    console.log('====== CLEANNING =======');
     daemon.clean();
-  }, 20000);
+  }, 33000);
 */
 }
 

@@ -5,9 +5,10 @@ var Promise = require('promise');
 var utils   = require('yocto-utils');
 
 /**
+ *
  * Daemon wrapper core interface
  *
- * This module create & manage a program like a daemon 
+ * This module create & manage a program like a daemon
  *
  * @date : 24/09/2015
  * @author : Mathieu ROBERT <mathieu@yocto.re>
@@ -93,11 +94,11 @@ function DaemonWrapper (logger) {
    * @default false
    */
   this.pauseInterval          = false;
-};
+}
 
 /**
  * Change the retry value when error occured
- * 
+ *
  * @param {Integer} value nb retry value to change
  * @return {Boolean} true if value is correct false otherwise
  */
@@ -130,7 +131,7 @@ DaemonWrapper.prototype.retry = function (value) {
 
 /**
  * Change the delay value to wait after queue process (in seconds)
- * 
+ *
  * @param {Integer} value wait seconds value to change
  * @return {Boolean} true if value is correct false otherwise
  */
@@ -228,12 +229,12 @@ DaemonWrapper.prototype.createQueue = function () {
         context.logger.info('[ Queue.run ] - Success response given. Calling given callback');
         // call callback
         callback({ success : true, error : false, message : success, data : task });
-      }, function(error) {
+      }, function (error) {
         // error so log it
         context.logger.error([ '[ Queue.run ] - Error response given. Error is :',
                                 error, 'Calling given callback' ].join(' '));
         // call callback
-        callback({ success : false, error : true, message : success, data : task });
+        callback({ success : false, error : true, message : error, data : task });
       });
     }, this.thread);
 
@@ -245,7 +246,7 @@ DaemonWrapper.prototype.createQueue = function () {
       // message
       context.logger.info([ '[ Queue.drain ] - Pending work is complete. Sleeping',
                       context.wait, 'seconds before next tick ...' ].join(' '));
-      // sleeping before next tick 
+      // sleeping before next tick
       sleep.sleep(context.wait);
       // check each time if queue ready
       if (context.isReady(true)) {
@@ -287,23 +288,24 @@ DaemonWrapper.prototype.chainPopulate = function () {
   // app is ready ?
   if (this.isReady(true)) {
     // main populate
-    this.populate().then(function(success) {
-      contect.logger.info([ '[ DaemonWrapper.chainPopulate ] - Populate function succeed.',
+    this.populate().then(function () {
+      context.logger.info([ '[ DaemonWrapper.chainPopulate ] - Populate function succeed.',
                             'nothing to process. waiting draining ...' ].join(' '));
-    }, function(error) {
+    }, function (error) {
       // change nb error value
       context.nbError += 1;
       // message
-      context.logger.error('[ DaemonWrapper.chainPopulate ] - An error occured during populate.');
+      context.logger.error([ '[ DaemonWrapper.chainPopulate ] - An error occured during populate.',
+                             'Error is :', utils.obj.inspect(error) ].join(' '));
 
       // retry is over ??
       if (context.nbError < context.errorRetry) {
-          context.logger.error(['[ DaemonWrapper.chainPopulate ] - Waiting', context.wait,
-                                 'seconds before next tick ...' ].join(' '));
-          // sleeping before next tick 
-          sleep.sleep(context.wait);
-          // here we go again
-          context.chainPopulate();
+        context.logger.error(['[ DaemonWrapper.chainPopulate ] - Waiting', context.wait,
+                               'seconds before next tick ...' ].join(' '));
+        // sleeping before next tick
+        sleep.sleep(context.wait);
+        // here we go again
+        context.chainPopulate();
       } else {
         // log error message
         context.logger.error(['[ DaemonWrapper.chainPopulate ] - Too many errors occured.',
@@ -361,10 +363,11 @@ DaemonWrapper.prototype.populate = function () {
         if (_.isObject(success) && _.has(success, 'data') &&
           _.has(success, 'priority') && _.isNumber(success.priority) &&
           _.has(success, 'callback') && _.isFunction(success.callback)) {
-            context.logger.debug([ '[ DaemonWrapper.populate ] - Given populate function has',
+          // log message
+          context.logger.debug([ '[ DaemonWrapper.populate ] - Given populate function has',
                                    'return a valid structure. normalize it' ].join(' '));
-            // process normalize
-            normalized = success;
+          // process normalize
+          normalized = success;
         }
 
         // debug log to see what we insert into queue
@@ -388,12 +391,13 @@ DaemonWrapper.prototype.populate = function () {
             if (_.isObject(d) && _.has(d, 'data') &&
               _.has(d, 'priority') && _.isNumber(d.priority) &&
               _.has(d, 'callback') && _.isFunction(d.callback)) {
-                context.logger.debug([ [ '[ DaemonWrapper.populate.item[', key, ']' ].join(''),
+              // log message
+              context.logger.debug([ [ '[ DaemonWrapper.populate.item[', key, ']' ].join(''),
                                          '] - return a valid structure. normalize it' ].join(' '));
-                // change value
-                value     = d.data;
-                priority  = d.priority;
-                cback     = d.callback;
+              // change value
+              value     = d.data;
+              priority  = d.priority;
+              cback     = d.callback;
             }
 
             // add value
@@ -447,10 +451,10 @@ DaemonWrapper.prototype.add = function (item, priority, callback) {
         !_.isUndefined(priority) && !_.isNull(priority) && priority >= 1 &&
         !_.isUndefined(callback) && !_.isNull(callback) && _.isFunction(callback)) {
 
-          // push to queue
-          this.queue.push(item, priority, callback);
-          // valid statement
-          return true;
+      // push to queue
+      this.queue.push(item, priority, callback);
+      // valid statement
+      return true;
     } else {
       // invalid data given log it
       this.logger.warning('[ DaemonWrapper.add ] - Invalid data given. Adding was omit');
@@ -459,7 +463,7 @@ DaemonWrapper.prototype.add = function (item, priority, callback) {
 
   // default statement
   return false;
-}
+};
 
 /**
  * Add more workers on current queue
@@ -524,7 +528,7 @@ DaemonWrapper.prototype.changeWorkersConcurrency = function (value, higher) {
   this.logger.info([ '[ DaemonWrapper.changeConcurrency ] - Workers concurrency change from [',
                     before, '] to [', (this.queue.concurrency || this.thread), ']' ].join(' '));
   // default statement
-  return _.isNumber(this.queue.concurrency || this.thread) && 
+  return _.isNumber(this.queue.concurrency || this.thread) &&
         (this.queue.concurrency || this.thread) >= 1;
 };
 
@@ -537,22 +541,22 @@ DaemonWrapper.prototype.changeWorkersConcurrency = function (value, higher) {
 DaemonWrapper.prototype.isReady = function (showErrors) {
   if (!_.isUndefined(showErrors) && _.isBoolean(showErrors) && showErrors) {
     // populate function
-    if (_.isUndefined(this.populateFn) ||_.isNull(this.populateFn) ||
+    if (_.isUndefined(this.populateFn) || _.isNull(this.populateFn) ||
        !_.isFunction(this.populateFn) || !(this.populateFn() instanceof Promise)) {
-         this.logger.error([ '[ DaemonWrapper.isReady ] - Wrapper is not ready.',
+      this.logger.error([ '[ DaemonWrapper.isReady ] - Wrapper is not ready.',
                              'populate Function is invalid.',
                              'Please call "use" function',
                              'before start your app' ].join(' '));
-        
-       }
+
+    }
     // exec function
-    if (_.isUndefined(this.execFn) ||_.isNull(this.execFn) ||
+    if (_.isUndefined(this.execFn) || _.isNull(this.execFn) ||
        !_.isFunction(this.execFn) || !(this.execFn() instanceof Promise)) {
-         this.logger.error([ '[ DaemonWrapper.isReady ] - Wrapper is not ready.',
+      this.logger.error([ '[ DaemonWrapper.isReady ] - Wrapper is not ready.',
                              'exec Function is invalid.',
                              'Please call "use" function',
                              'before start your app' ].join(' '));
-       }
+    }
   }
 
   // default status
@@ -564,7 +568,6 @@ DaemonWrapper.prototype.isReady = function (showErrors) {
   // default statement
   return !status ? this.stop() : status;
 };
-
 
 /**
  * Stop current program and exiting by process.exit
@@ -614,14 +617,12 @@ DaemonWrapper.prototype.pause = function () {
     this.logger.info('[ DaemonWrapper.pause ] - Pausing Queue ...');
     // process
     this.queue.pause();
-    // saved context
-    var context =  this;
-    
+
     // check status
     this.pauseInterval = setInterval(function () {
       // waiting since resume where interval was clear
     }, 1000);
-    
+
     // default statement
     return this.queue.paused;
   }
@@ -641,13 +642,13 @@ DaemonWrapper.prototype.resume = function () {
     // log message
     this.logger.info('[ DaemonWrapper.resume ] - Resume Queue ...');
 
-    // check pause interval 
+    // check pause interval
     if (!_.isBoolean(this.pauseInterval) && !_.isNull(this.pauseInterval) &&
         !_.isUndefined(this.pauseInterval)) {
-          this.logger.info('[ DaemonWrapper.resume ] - Cleaning pause interval');
-          // clear interval
-          clearInterval(this.pauseInterval);
-        }
+      this.logger.info('[ DaemonWrapper.resume ] - Cleaning pause interval');
+      // clear interval
+      clearInterval(this.pauseInterval);
+    }
 
     // process
     this.queue.resume();
@@ -715,7 +716,7 @@ DaemonWrapper.prototype.kill = function (exit) {
   if (!_.isUndefined(exit) && !_.isNull(exit) && _.isBoolean(exit) && exit) {
     // log message
     this.logger.info('[ DaemonWrapper.kill ] - Exiting ...');
-    // process exit 
+    // process exit
     process.exit(1);
   }
 
