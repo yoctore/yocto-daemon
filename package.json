@@ -1,7 +1,7 @@
 {
   "name": "yocto-daemon",
   "description": "Async tool to emulate an app like a system daemon",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "scripts": {},
   "author": {
     "name": "ROBERT Mathieu",

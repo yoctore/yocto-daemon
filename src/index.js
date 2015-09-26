@@ -108,7 +108,7 @@ DaemonWrapper.prototype.retry = function (value) {
   var from = this.errorRetry;
 
   // check and assign
-  if (!_.isUndefined(value) && !_.isNull(value) && _.isNumber(value)) {
+  if (_.isNumber(value) && !_.isNaN(value)) {
     // valid value ?
     if (value >= 0) {
       // assign
@@ -141,7 +141,7 @@ DaemonWrapper.prototype.delay = function (value) {
   var from = this.wait;
 
   // check and assign
-  if (!_.isUndefined(value) && !_.isNull(value) && _.isNumber(value)) {
+  if (_.isNumber(value) && !_.isNaN(value)) {
     // valid value ?
     if (value >= 0) {
       // assign
@@ -171,7 +171,7 @@ DaemonWrapper.prototype.delay = function (value) {
  */
 DaemonWrapper.prototype.use = function (fn, exec) {
   // test value first
-  if (_.isUndefined(fn) || _.isNull(fn) || !_.isFunction(fn)) {
+  if (!_.isFunction(fn)) {
     // log message
     this.logger.error('[ DaemonWrapper.use ] - given data is not function.');
     // error statement
@@ -187,7 +187,7 @@ DaemonWrapper.prototype.use = function (fn, exec) {
   }
 
   // is for exec ?
-  if (!_.isUndefined(exec) && !_.isNull(exec) && _.isBoolean(exec) && exec) {
+  if (_.isBoolean(exec) && exec) {
     // assign exec
     this.execFn = fn;
   } else {
@@ -268,6 +268,13 @@ DaemonWrapper.prototype.createQueue = function () {
     this.queue.saturated = function () {
       // warning message
       context.logger.warning('[ Queue.saturated ] - Queue length hits the concurrency limit.');
+      context.logger.info([ '[ Queue.saturated ] - Changing Queue length concurrency',
+                            'to an higher value.' ].join(' '));
+      context.logger.info([ '[ Queue.saturated ] - Concurrency limit changing from [',
+                             context.queue.concurrency, '] to [',
+                             context.queue.concurrency  * 2, ']' ].join(' '));
+      // changing value
+      context.queue.concurrency = context.queue.concurrency * 2;
     };
 
     // default statement
@@ -449,8 +456,7 @@ DaemonWrapper.prototype.add = function (item, priority, callback) {
 
     // check type of value
     if (!_.isUndefined(item) && !_.isNull(item) &&
-        !_.isUndefined(priority) && !_.isNull(priority) && priority >= 1 &&
-        !_.isUndefined(callback) && !_.isNull(callback) && _.isFunction(callback)) {
+        _.isNumber(priority) && priority >= 1 && _.isFunction(callback)) {
 
       // push to queue
       this.queue.push(item, priority, callback);
@@ -474,7 +480,7 @@ DaemonWrapper.prototype.add = function (item, priority, callback) {
  */
 DaemonWrapper.prototype.moreWorkers = function (value) {
   // define default value
-  value = !_.isUndefined(value) && !_.isNull(value) && _.isNumber(value) && value > 0 ? value : 10;
+  value = _.isNumber(value) && value > 0 ? value : 10;
   // default statement
   return this.changeWorkersConcurrency(value, true);
 };
@@ -487,7 +493,7 @@ DaemonWrapper.prototype.moreWorkers = function (value) {
  */
 DaemonWrapper.prototype.lessWorkers = function (value) {
   // define default value
-  value = !_.isUndefined(value) && !_.isNull(value) && _.isNumber(value) && value > 0 ? value : 10;
+  value = _.isNumber(value) && value > 0 ? value : 10;
   // default statement
   return this.changeWorkersConcurrency(value, false);
 };
@@ -504,6 +510,7 @@ DaemonWrapper.prototype.changeWorkersConcurrency = function (value, higher) {
   var before  = this.queue.concurrency || this.thread;
   // change value
   var workers = !_.isUndefined(higher) && !_.isNull(higher) &&
+                _.isNumber(value) && !_.isNaN(value) &&
                 higher ? (this.queue.concurrency || this.thread) + value :
                 (this.queue.concurrency || this.thread) - value;
 
@@ -540,10 +547,9 @@ DaemonWrapper.prototype.changeWorkersConcurrency = function (value, higher) {
  * @return {Boolean} true is all is ok, false otherwise
  */
 DaemonWrapper.prototype.isReady = function (showErrors) {
-  if (!_.isUndefined(showErrors) && _.isBoolean(showErrors) && showErrors) {
+  if (_.isBoolean(showErrors) && showErrors) {
     // populate function
-    if (_.isUndefined(this.populateFn) || _.isNull(this.populateFn) ||
-       !_.isFunction(this.populateFn) || !(this.populateFn() instanceof Promise)) {
+    if (!_.isFunction(this.populateFn) || !(this.populateFn() instanceof Promise)) {
       this.logger.error([ '[ DaemonWrapper.isReady ] - Wrapper is not ready.',
                              'populate Function is invalid.',
                              'Please call "use" function',
@@ -551,8 +557,7 @@ DaemonWrapper.prototype.isReady = function (showErrors) {
 
     }
     // exec function
-    if (_.isUndefined(this.execFn) || _.isNull(this.execFn) ||
-       !_.isFunction(this.execFn) || !(this.execFn() instanceof Promise)) {
+    if (!_.isFunction(this.execFn) || !(this.execFn() instanceof Promise)) {
       this.logger.error([ '[ DaemonWrapper.isReady ] - Wrapper is not ready.',
                              'exec Function is invalid.',
                              'Please call "use" function',
@@ -561,9 +566,7 @@ DaemonWrapper.prototype.isReady = function (showErrors) {
   }
 
   // default status
-  var status = !_.isUndefined(this.populateFn) && !_.isNull(this.populateFn) &&
-               _.isFunction(this.populateFn) && (this.populateFn() instanceof Promise) &&
-               !_.isUndefined(this.execFn) && !_.isNull(this.execFn) &&
+  var status = _.isFunction(this.populateFn) && (this.populateFn() instanceof Promise) &&
                _.isFunction(this.execFn) && (this.execFn() instanceof Promise);
 
   // default statement
@@ -714,7 +717,7 @@ DaemonWrapper.prototype.kill = function (exit) {
   this.queue.kill();
 
   // exit process is required ?
-  if (!_.isUndefined(exit) && !_.isNull(exit) && _.isBoolean(exit) && exit) {
+  if (_.isBoolean(exit) && exit) {
     // log message
     this.logger.info('[ DaemonWrapper.kill ] - Exiting ...');
     // process exit

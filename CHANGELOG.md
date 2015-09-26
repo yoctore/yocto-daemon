@@ -1,3 +1,11 @@
+## 1.0.2 (2015-09-17)
+
+- Adding auto grow up of concurrency limit on process queue
+
+## 1.0.1 (2015-09-17)
+
+- Change + Complete some test usage on var
+
 ## 1.0.0 (2015-09-17)
 
 Base implementation of module.
