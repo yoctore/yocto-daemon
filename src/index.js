@@ -1,9 +1,9 @@
 var async   = require('async');
 var _       = require('lodash');
 var sleep   = require('sleep');
-var Promise = require('promise');
 var logger  = require('yocto-logger');
 var utils   = require('yocto-utils');
+var Q       = require('q');
 
 /**
  *
@@ -171,19 +171,11 @@ DaemonWrapper.prototype.delay = function (value) {
  */
 DaemonWrapper.prototype.use = function (fn, exec) {
   // test value first
-  if (!_.isFunction(fn)) {
+  if (!_.isFunction(fn) || !_.isObject(fn())) {
     // log message
-    this.logger.error([ '[ DaemonWrapper.use ] - Given data is not function for :',
-                      exec ? 'execFn' : 'populateFn' ].join(' '));
-    // error statement
-    return false;
-  }
-
-  // testing fn
-  if (!(fn() instanceof Promise)) {
-    // log message
-    this.logger.error([ '[ DaemonWrapper.use ] - Given function is not a valid promise for :',
-                      exec ? 'execFn' : 'populateFn' ].join(' '));
+    this.logger.error([ '[ DaemonWrapper.use ] - Given data is not function',
+                        'or not a valid promise for :',
+                        exec ? 'execFn' : 'populateFn' ].join(' '));
     // error statement
     return false;
   }
@@ -342,101 +334,103 @@ DaemonWrapper.prototype.chainPopulate = function () {
  * @return {Object} a promise object
  */
 DaemonWrapper.prototype.populate = function () {
+  // create promise
+  var deferred = Q.defer();
   // save current context
   var context = this;
-  // default statement
-  return new Promise(function (fulfill, reject) {
-    var message = [ '[ DaemonWrapper.populate ] - A problem occured.',
-                    'Current queue process seems to be not ready yet.',
-                    'Cannot populate.' ].join(' ');
-    if (!context.isReady(true)) {
-      reject(message);
-    } else {
-      // populate call
-      context.populateFn().then(function (success) {
-        // success retrieve message
-        context.logger.info([ '[ DaemonWrapper.populate ] - success response given.',
-                              'Try to normalize data before push into queue' ].join(' '));
-        // default assignement
-        var normalized = {
-          data      : success,
-          priority  : context.DEFAULT_TASK_PRIORITY,
-          callback  : function () {
-            // default message for default callback
-            context.logger.info([ '[ Queue.run.callback ] - default callback was called.',
-                                  'Nothing to do here ...',
-                                  'Prefer defined your own callback ...' ].join(' '));
+  // default message
+  var message = [ '[ DaemonWrapper.populate ] - A problem occured.',
+                  'Current queue process seems to be not ready yet.',
+                  'Cannot populate.' ].join(' ');
+  if (!this.isReady(true)) {
+    deferred.reject(message);
+  } else {
+    // populate call
+    this.populateFn().then(function (success) {
+      // success retrieve message
+      context.logger.info([ '[ DaemonWrapper.populate ] - success response given.',
+                            'Try to normalize data before push into queue' ].join(' '));
+      // default assignement
+      var normalized = {
+        data      : success,
+        priority  : context.DEFAULT_TASK_PRIORITY,
+        callback  : function () {
+          // default message for default callback
+          context.logger.info([ '[ Queue.run.callback ] - default callback was called.',
+                                'Nothing to do here ...',
+                                'Prefer defined your own callback ...' ].join(' '));
+        }
+      };
+
+      // check struct of data if is an object ?
+      if (_.isObject(success) && _.has(success, 'data') &&
+        _.has(success, 'priority') && _.isNumber(success.priority) &&
+        _.has(success, 'callback') && _.isFunction(success.callback)) {
+        // log message
+        context.logger.debug([ '[ DaemonWrapper.populate ] - Given populate function has',
+                                 'return a valid structure. normalize it' ].join(' '));
+        // process normalize
+        normalized = success;
+      }
+
+      // debug log to see what we insert into queue
+      context.logger.debug([ '[ DaemonWrapper.populate ] - normalize data is :',
+                           utils.obj.inspect(normalized) ].join(' '));
+      // prepare message
+      context.logger.info([ '[ DaemonWrapper.populate ] - prepare to adding',
+                            normalized.data.length, 'new data on queue.' ].join(' '));
+      // is array ?
+      if (_.isArray(normalized.data)) {
+        // parse all data
+        _.each(normalized.data, function (d, key) {
+          // save current priority
+          var priority  = normalized.priority;
+          // save callback;
+          var cback     = normalized.callback;
+          // save value
+          var value     = d;
+
+          // check struct of data if is an object ?
+          if (_.isObject(d) && _.has(d, 'data') &&
+            _.has(d, 'priority') && _.isNumber(d.priority) &&
+            _.has(d, 'callback') && _.isFunction(d.callback)) {
+            // log message
+            context.logger.debug([ [ '[ DaemonWrapper.populate.item[', key, ']' ].join(''),
+                                       '] - return a valid structure. normalize it' ].join(' '));
+            // change value
+            value     = d.data;
+            priority  = d.priority;
+            cback     = d.callback;
           }
-        };
 
-        // check struct of data if is an object ?
-        if (_.isObject(success) && _.has(success, 'data') &&
-          _.has(success, 'priority') && _.isNumber(success.priority) &&
-          _.has(success, 'callback') && _.isFunction(success.callback)) {
-          // log message
-          context.logger.debug([ '[ DaemonWrapper.populate ] - Given populate function has',
-                                   'return a valid structure. normalize it' ].join(' '));
-          // process normalize
-          normalized = success;
-        }
-
-        // debug log to see what we insert into queue
-        context.logger.debug([ '[ DaemonWrapper.populate ] - normalize data is :',
-                             utils.obj.inspect(normalized) ].join(' '));
-        // prepare message
-        context.logger.info([ '[ DaemonWrapper.populate ] - prepare to adding',
-                              normalized.data.length, 'new data on queue.' ].join(' '));
-        // is array ?
-        if (_.isArray(normalized.data)) {
-          // parse all data
-          _.each(normalized.data, function (d, key) {
-            // save current priority
-            var priority  = normalized.priority;
-            // save callback;
-            var cback     = normalized.callback;
-            // save value
-            var value     = d;
-
-            // check struct of data if is an object ?
-            if (_.isObject(d) && _.has(d, 'data') &&
-              _.has(d, 'priority') && _.isNumber(d.priority) &&
-              _.has(d, 'callback') && _.isFunction(d.callback)) {
-              // log message
-              context.logger.debug([ [ '[ DaemonWrapper.populate.item[', key, ']' ].join(''),
-                                         '] - return a valid structure. normalize it' ].join(' '));
-              // change value
-              value     = d.data;
-              priority  = d.priority;
-              cback     = d.callback;
-            }
-
-            // add value
-            context.add(value, priority, cback);
-
-            // is last item ? for callback
-            if (_.last(normalized.data) === d) {
-              // success callback here
-              fulfill(normalized);
-            }
-          });
-        } else {
           // add value
-          context.add(normalized.data, normalized.priority, normalized.callback);
-          // success callback here
-          fulfill(normalized);
-        }
-      }, function (error) {
-        // default error message
-        message = [ '[ DaemonWrapper.populate ] -',
-                    'Given populate function has broadcasted an error.',
-                    'Cannot populate.'].join(' ');
-        // log error message
-        context.logger.error([ message, 'Error is :', utils.obj.inspect(error) ].join(' '));
-        // reject process
-        reject(message);
-      });
-    }
-  });
+          context.add(value, priority, cback);
+
+          // is last item ? for callback
+          if (_.last(normalized.data) === d) {
+            // success callback here
+            deferred.resolve(normalized);
+          }
+        });
+      } else {
+        // add value
+        context.add(normalized.data, normalized.priority, normalized.callback);
+        // success callback here
+        deferred.resolve(normalized);
+      }
+    }).catch(function (error) {
+      // default error message
+      message = [ '[ DaemonWrapper.populate ] -',
+                  'Given populate function has broadcasted an error.',
+                  'Cannot populate.'].join(' ');
+      // log error message
+      context.logger.error([ message, 'Error is :', utils.obj.inspect(error) ].join(' '));
+      // reject process
+      deferred.reject(message);
+    });
+  }
+  // default statement
+  return deferred.promise;
 };
 
 /**
@@ -551,7 +545,7 @@ DaemonWrapper.prototype.changeWorkersConcurrency = function (value, higher) {
 DaemonWrapper.prototype.isReady = function (showErrors) {
   if (_.isBoolean(showErrors) && showErrors) {
     // populate function
-    if (!_.isFunction(this.populateFn) || !(this.populateFn() instanceof Promise)) {
+    if (!_.isFunction(this.populateFn) || !_.isObject(this.populateFn())) {
       this.logger.error([ '[ DaemonWrapper.isReady ] - Wrapper is not ready.',
                              'populate Function is invalid.',
                              'Please call "use" function',
@@ -559,7 +553,7 @@ DaemonWrapper.prototype.isReady = function (showErrors) {
 
     }
     // exec function
-    if (!_.isFunction(this.execFn) || !(this.execFn() instanceof Promise)) {
+    if (!_.isFunction(this.execFn) || !_.isObject(this.execFn())) {
       this.logger.error([ '[ DaemonWrapper.isReady ] - Wrapper is not ready.',
                              'exec Function is invalid.',
                              'Please call "use" function',
@@ -568,8 +562,8 @@ DaemonWrapper.prototype.isReady = function (showErrors) {
   }
 
   // default statement
-  return _.isFunction(this.populateFn) && (this.populateFn() instanceof Promise) &&
-         _.isFunction(this.execFn) && (this.execFn() instanceof Promise);
+  return _.isFunction(this.populateFn) && _.isObject(this.populateFn()) &&
+         _.isFunction(this.execFn) && _.isObject(this.execFn());
 };
 
 /**

@@ -1,3 +1,7 @@
+## 1.1.0
+
+- Migrate From PromiseJS to Q for promise usage
+
 ## 1.0.3 & 1.0.4 (2015-09-17)
 
 - Changing some logs usage on use method

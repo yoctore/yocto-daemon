@@ -1,7 +1,7 @@
 var logger      = require('yocto-logger');
 var daemon      = require('../../src/index.js')(logger);
-var Promise     = require('promise');
 var _           = require('lodash');
+var Q           = require('q');
 
 logger.less();
 
@@ -63,34 +63,39 @@ var state = true;
 // Process
 function pfn() {
 
-  return new Promise(function(fulfill, reject) {
+  var deferred = Q.defer();
 
-      var d = [];
-      
-      for (var i = 0; i <= limit; i++) {
-        d.push(datapopulate);
-      }
+  var d = [];
+  
+  for (var i = 0; i <= limit; i++) {
+    d.push(datapopulate);
+  }
 
-      d = _.flatten(d);
+  d = _.flatten(d);
 
-      if (state) {
-        fulfill(d);
-      } else {
-        reject(d);
-      }
-  });
+  if (state) {
+    deferred.resolve(d);
+  } else {
+    deferred.reject(d);
+  }
+
+
+  return deferred.promise;
+  /*return new Promise(function(fulfill, reject) {
+
+
+  });*/
 }
 
-pfn().then(function(success) {
-  console.log('success populate');
-}, function(error) {
-  //console.log('error populate');
-});
+
 
 function efn() {
-  return new Promise(function(fulfill, reject) {
+  /*return new Promise(function(fulfill, reject) {
     fulfill('yeah exec');
-  });
+  });*/
+  var deferred = Q.defer();
+    deferred.resolve('yeah exec');
+  return deferred.promise;
 }
 daemon.use(pfn);
 daemon.use(efn, true);
