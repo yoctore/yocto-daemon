@@ -57,11 +57,12 @@ var setd = [
 
 // used vars
 var datapopulate =  setd;
-var limit =  200;
+var limit =  1;
 var state = true;
 
 // Process
 function pfn() {
+
   return new Promise(function(fulfill, reject) {
 
       var d = [];

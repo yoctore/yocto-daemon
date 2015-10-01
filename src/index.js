@@ -565,12 +565,9 @@ DaemonWrapper.prototype.isReady = function (showErrors) {
     }
   }
 
-  // default status
-  var status = _.isFunction(this.populateFn) && (this.populateFn() instanceof Promise) &&
-               _.isFunction(this.execFn) && (this.execFn() instanceof Promise);
-
   // default statement
-  return !status ? this.stop() : status;
+  return _.isFunction(this.populateFn) && (this.populateFn() instanceof Promise) &&
+         _.isFunction(this.execFn) && (this.execFn() instanceof Promise);
 };
 
 /**
