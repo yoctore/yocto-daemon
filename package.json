@@ -1,7 +1,7 @@
 {
   "name": "yocto-daemon",
   "description": "Async tool to emulate an app like a system daemon",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "scripts": {},
   "author": {
     "name": "ROBERT Mathieu",
@@ -46,7 +46,7 @@
     "promise": "^7.0.4",
     "sleep": "^3.0.0",
     "yocto-logger": "^1.0.0",
-    "yocto-utils": "git+ssh://git@gitlab.com:yocto-node-modules/yocto-utils.git"
+    "yocto-utils": "^0.7.3"
   },
   "devDependencies": {
     "grunt": "^0.4.5",

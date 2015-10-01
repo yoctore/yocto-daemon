@@ -1,3 +1,7 @@
+## 1.0.3 (2015-09-17)
+
+- Changing some logs usage on use method
+
 ## 1.0.2 (2015-09-17)
 
 - Adding auto grow up of concurrency limit on process queue

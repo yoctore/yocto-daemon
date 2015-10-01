@@ -173,7 +173,8 @@ DaemonWrapper.prototype.use = function (fn, exec) {
   // test value first
   if (!_.isFunction(fn)) {
     // log message
-    this.logger.error('[ DaemonWrapper.use ] - given data is not function.');
+    this.logger.error([ '[ DaemonWrapper.use ] - Given data is not function for :',
+                      exec ? 'execFn' : 'populateFn' ].join(' '));
     // error statement
     return false;
   }
@@ -181,7 +182,8 @@ DaemonWrapper.prototype.use = function (fn, exec) {
   // testing fn
   if (!(fn() instanceof Promise)) {
     // log message
-    this.logger.error('[ DaemonWrapper.use ] - given function is not a valid promise.');
+    this.logger.error([ '[ DaemonWrapper.use ] - Given function is not a valid promise for :',
+                      exec ? 'execFn' : 'populateFn' ].join(' '));
     // error statement
     return false;
   }
