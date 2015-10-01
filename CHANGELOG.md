@@ -1,3 +1,7 @@
+## 1.1.1
+
+- Adding context execution on method call process
+
 ## 1.1.0
 
 - Migrate From PromiseJS to Q for promise usage

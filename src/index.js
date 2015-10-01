@@ -167,9 +167,10 @@ DaemonWrapper.prototype.delay = function (value) {
  *
  * @param {Function} fn function to use on populate action
  * @param {Boolean} exec true if we want to define exec function
+ * @param {Object} context context where we want to execute function by default to this
  * @return {Boolean} true is set si ok false otherwise
  */
-DaemonWrapper.prototype.use = function (fn, exec) {
+DaemonWrapper.prototype.use = function (fn, exec, context) {
   // test value first
   if (!_.isFunction(fn) || !_.isObject(fn())) {
     // log message
@@ -183,10 +184,16 @@ DaemonWrapper.prototype.use = function (fn, exec) {
   // is for exec ?
   if (_.isBoolean(exec) && exec) {
     // assign exec
-    this.execFn = fn;
+    this.execFn = {
+      method  : fn,
+      context : context || this
+    };
   } else {
     // assign populate
-    this.populateFn = fn;
+    this.populateFn = {
+      method  : fn,
+      context : context || this
+    };
   }
 
   // default statement
@@ -219,7 +226,7 @@ DaemonWrapper.prototype.createQueue = function () {
       // some debug data
       context.logger.debug([ '[ Queue.run ] - Data is : ', utils.obj.inspect(task) ].join(' '));
       // process promise style
-      context.execFn(task).then(function (success) {
+      context.execFn.method.apply(context.execFn.context, task).then(function (success) {
         // success so log it
         context.logger.info('[ Queue.run ] - Success response given. Calling given callback');
         // call callback
@@ -346,7 +353,7 @@ DaemonWrapper.prototype.populate = function () {
     deferred.reject(message);
   } else {
     // populate call
-    this.populateFn().then(function (success) {
+    this.populateFn.method.apply(this.populateFn.context).then(function (success) {
       // success retrieve message
       context.logger.info([ '[ DaemonWrapper.populate ] - success response given.',
                             'Try to normalize data before push into queue' ].join(' '));
@@ -543,9 +550,12 @@ DaemonWrapper.prototype.changeWorkersConcurrency = function (value, higher) {
  * @return {Boolean} true is all is ok, false otherwise
  */
 DaemonWrapper.prototype.isReady = function (showErrors) {
+
+  // show errors ?
   if (_.isBoolean(showErrors) && showErrors) {
     // populate function
-    if (!_.isFunction(this.populateFn) || !_.isObject(this.populateFn())) {
+    if (!_.isFunction(this.populateFn.method) ||
+        !_.isObject(this.populateFn.method.apply(this.populateFn.context))) {
       this.logger.error([ '[ DaemonWrapper.isReady ] - Wrapper is not ready.',
                              'populate Function is invalid.',
                              'Please call "use" function',
@@ -553,7 +563,8 @@ DaemonWrapper.prototype.isReady = function (showErrors) {
 
     }
     // exec function
-    if (!_.isFunction(this.execFn) || !_.isObject(this.execFn())) {
+    if (!_.isFunction(this.execFn.method) ||
+        !_.isObject(this.execFn.method.apply(this.execFn.context))) {
       this.logger.error([ '[ DaemonWrapper.isReady ] - Wrapper is not ready.',
                              'exec Function is invalid.',
                              'Please call "use" function',
@@ -562,8 +573,10 @@ DaemonWrapper.prototype.isReady = function (showErrors) {
   }
 
   // default statement
-  return _.isFunction(this.populateFn) && _.isObject(this.populateFn()) &&
-         _.isFunction(this.execFn) && _.isObject(this.execFn());
+  return _.isFunction(this.populateFn.method) &&
+         _.isObject(this.populateFn.method.apply(this.populateFn.context)) &&
+         _.isFunction(this.execFn.method) &&
+         _.isObject(this.execFn.method.apply(this.execFn.context));
 };
 
 /**
