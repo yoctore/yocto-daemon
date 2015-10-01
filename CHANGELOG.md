@@ -1,6 +1,7 @@
-## 1.0.3 (2015-09-17)
+## 1.0.3 & 1.0.4 (2015-09-17)
 
 - Changing some logs usage on use method
+- Changing statement of start method 
 
 ## 1.0.2 (2015-09-17)
 

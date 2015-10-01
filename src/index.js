@@ -605,7 +605,7 @@ DaemonWrapper.prototype.start = function () {
     }
   }
   // default statement
-  return this.queue.started;
+  return true;
 };
 
 /**
