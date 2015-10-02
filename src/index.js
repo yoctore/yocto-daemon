@@ -226,7 +226,7 @@ DaemonWrapper.prototype.createQueue = function () {
       // some debug data
       context.logger.debug([ '[ Queue.run ] - Data is : ', utils.obj.inspect(task) ].join(' '));
       // process promise style
-      context.execFn.method.apply(context.execFn.context, task).then(function (success) {
+      context.execFn.method.call(context.execFn.context, task).then(function (success) {
         // success so log it
         context.logger.info('[ Queue.run ] - Success response given. Calling given callback');
         // call callback
@@ -395,7 +395,7 @@ DaemonWrapper.prototype.populate = function () {
           // save callback;
           var cback     = normalized.callback;
           // save value
-          var value     = d;
+          var value     = d.data;
 
           // check struct of data if is an object ?
           if (_.isObject(d) && _.has(d, 'data') &&
@@ -460,7 +460,6 @@ DaemonWrapper.prototype.add = function (item, priority, callback) {
     // check type of value
     if (!_.isUndefined(item) && !_.isNull(item) &&
         _.isNumber(priority) && priority >= 1 && _.isFunction(callback)) {
-
       // push to queue
       this.queue.push(item, priority, callback);
       // valid statement

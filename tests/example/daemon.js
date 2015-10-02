@@ -3,7 +3,7 @@ var daemon      = require('../../src/index.js')(logger);
 var _           = require('lodash');
 var Q           = require('q');
 
-logger.less();
+//logger.less();
 
 // DATA
 var seta = [
@@ -89,7 +89,8 @@ function pfn() {
 
 
 
-function efn() {
+function efn(data) {
+  console.log('=>args', data);
   /*return new Promise(function(fulfill, reject) {
     fulfill('yeah exec');
   });*/

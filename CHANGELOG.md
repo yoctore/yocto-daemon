@@ -1,23 +1,27 @@
-## 1.1.1
+## 1.1.2 (2015-10-02) 
 
-- Adding context execution on method call process
+- Change call of execFn from FN.apply to FN.call
 
-## 1.1.0
+## 1.1.1  (2015-10-01)
+
+- Add context execution on method call process
+
+## 1.1.0 (2015-10-01)
 
 - Migrate From PromiseJS to Q for promise usage
 
 ## 1.0.3 & 1.0.4 (2015-09-17)
 
-- Changing some logs usage on use method
-- Changing statement of start method 
+- Change some logs usage on use method
+- Change statement of start method 
 
 ## 1.0.2 (2015-09-17)
 
-- Adding auto grow up of concurrency limit on process queue
+- Add auto grow up of concurrency limit on process queue
 
 ## 1.0.1 (2015-09-17)
 
-- Change + Complete some test usage on var
+- Change & Complete some test usage on var
 
 ## 1.0.0 (2015-09-17)
 
