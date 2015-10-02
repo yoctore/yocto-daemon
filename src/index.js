@@ -395,7 +395,7 @@ DaemonWrapper.prototype.populate = function () {
           // save callback;
           var cback     = normalized.callback;
           // save value
-          var value     = d.data;
+          var value     = d;
 
           // check struct of data if is an object ?
           if (_.isObject(d) && _.has(d, 'data') &&
