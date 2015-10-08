@@ -297,9 +297,15 @@ DaemonWrapper.prototype.chainPopulate = function () {
   // app is ready ?
   if (this.isReady(true)) {
     // main populate
-    this.populate().then(function () {
+    this.populate().then(function (item) {
       context.logger.info([ '[ DaemonWrapper.chainPopulate ] - Populate function succeed.',
-                            'nothing to process. waiting draining ...' ].join(' '));
+                            (_.isEmpty(item.data) ? 'Nothing to process.' : ''),
+                            'Waiting draining ...' ].join(' '));
+      // is empty item ?
+      if (_.isEmpty(item.data)) {
+        // call drain
+        context.queue.drain();
+      }
     }, function (error) {
       // change nb error value
       context.nbError += 1;
@@ -386,8 +392,8 @@ DaemonWrapper.prototype.populate = function () {
       // prepare message
       context.logger.info([ '[ DaemonWrapper.populate ] - prepare to adding',
                             normalized.data.length, 'new data on queue.' ].join(' '));
-      // is array ?
-      if (_.isArray(normalized.data)) {
+      // is array & data is empty ??
+      if (_.isArray(normalized.data) && !_.isEmpty(normalized.data)) {
         // parse all data
         _.each(normalized.data, function (d, key) {
           // save current priority
@@ -420,8 +426,11 @@ DaemonWrapper.prototype.populate = function () {
           }
         });
       } else {
-        // add value
-        context.add(normalized.data, normalized.priority, normalized.callback);
+        // is not empty ?
+        if (!_.isEmpty(normalized.data)) {
+          // add value
+          context.add(normalized.data, normalized.priority, normalized.callback);
+        }
         // success callback here
         deferred.resolve(normalized);
       }

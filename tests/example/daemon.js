@@ -59,24 +59,32 @@ var setd = [
 var datapopulate =  setd;
 var limit =  1;
 var state = true;
+var processed = 1;
 
 // Process
 function pfn() {
 
   var deferred = Q.defer();
+  //deferred.resolve([]);
 
-  var d = [];
+  if (processed == 1) {
+    var d = [];
+    
+    for (var i = 0; i <= limit; i++) {
+      d.push(datapopulate);
+    }
   
-  for (var i = 0; i <= limit; i++) {
-    d.push(datapopulate);
-  }
-
-  d = _.flatten(d);
-
-  if (state) {
-    deferred.resolve(d);
+    d = _.flatten(d);
+  
+    if (state) {
+      deferred.resolve(d);
+      processed = 0;
+    } else {
+      deferred.reject(d);
+    }
   } else {
-    deferred.reject(d);
+    processed = 1;
+    deferred.resolve([]);
   }
 
 
@@ -112,7 +120,7 @@ if (daemon.isReady(true)) {
   daemon.moreWorkers(5000);
 */
   daemon.start();
-  
+/*  
   var pause = setInterval(function() {
     if (!daemon.queue.paused) {
       console.log('====== PAUSE =======');
@@ -126,7 +134,7 @@ if (daemon.isReady(true)) {
     daemon.resume();
   }, 27500);
 
-
+*/
   /*var d = setInterval(function() {
     console.log('====== CLEANNING =======');
     daemon.clean();
