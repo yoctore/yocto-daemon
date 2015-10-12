@@ -47,7 +47,7 @@
     "q": "^1.4.1",
     "sleep": "^3.0.0",
     "yocto-logger": "^1.0.0",
-    "yocto-utils": "^0.7.3"
+    "yocto-utils": "^0.8.0"
   },
   "devDependencies": {
     "grunt": "^0.4.5",
