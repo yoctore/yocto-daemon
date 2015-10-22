@@ -92,6 +92,22 @@ daemon.use(pfn, false, CONTEXT_HERE);
 daemon.use(efn, true, CONTEXT_HERE);
 ```
 
+## How to use priority on queue
+
+By default pour populate method can return anything in what structure you want.
+
+If you want use priority your populate method must return an object like : 
+
+```javascript
+{
+  data      : 'YOUR_DATA_TO_EXECUTE_HERE', // WHAT YOU WANT HERE OBJ, ARRAY, ETC
+  priority  : 'YOUR_PRIORITY_HERE', // MUST BE AN INTEGER
+  callback  : function () {
+    // A CALLBACK METHOD => PREFER USE YOUR OWN CALLBACK BY DEFAULT WE USE AN INTERNAL CALLBACK METHOD
+  }
+}
+```
+
 ## Available methods
 
 - start() : start daemon
@@ -105,3 +121,9 @@ daemon.use(efn, true, CONTEXT_HERE);
 ## Logging in tool
 
 By Default this module include [yocto-logger](https://www.npmjs.com/package/yocto-logger) for logging. It's possible to inject in your router instance your current logger instance if is another yocto-logger instance.
+
+##Changelog
+
+All history is [here](https://gitlab.com/yocto-node-modules/yocto-daemon#README)
+
+

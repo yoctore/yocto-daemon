@@ -1,3 +1,7 @@
+## 1.1.4 (2015-10-03) 
+
+- Add more data on readme for priority usage.
+
 ## 1.1.3 (2015-10-03) 
 
 - Fix a bug : when empty data was retrieve drain was not called => fixed.
