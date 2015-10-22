@@ -1,6 +1,7 @@
 ## 1.1.3 (2015-10-03) 
 
-- Fix a bug : when empty data was retrieve drain was not called => fixed. 
+- Fix a bug : when empty data was retrieve drain was not called => fixed.
+- Add readme content
 
 ## 1.1.2 (2015-10-02) 
 
