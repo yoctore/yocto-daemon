@@ -122,7 +122,7 @@ If you want use priority your populate method must return an object like :
 
 By Default this module include [yocto-logger](https://www.npmjs.com/package/yocto-logger) for logging. It's possible to inject in your router instance your current logger instance if is another yocto-logger instance.
 
-##Changelog
+## Changelog
 
 All history is [here](https://gitlab.com/yocto-node-modules/yocto-daemon#README)
 
