@@ -1,4 +1,4 @@
-## 1.1.5 (2016-02-04) 
+## 1.1.6 (2016-02-04) 
 
 - Fix a bug on queue concurency
 
