@@ -1,3 +1,7 @@
+## 1.1.5 (2016-02-04) 
+
+- Fix a bug on queue concurency
+
 ## 1.1.4 (2015-10-03) 
 
 - Add more data on readme for priority usage.

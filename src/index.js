@@ -537,7 +537,7 @@ DaemonWrapper.prototype.changeWorkersConcurrency = function (value, higher) {
   }
 
   // set value
-  if (!_.isUndefined()) {
+  if (!_.isUndefined(this.queue.concurrency)) {
     this.queue.concurrency = workers;
   } else {
     this.thread = workers;
