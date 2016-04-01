@@ -1,4 +1,11 @@
+[![NPM](https://nodei.co/npm/yocto-daemon.png?downloads=true&downloadRank=true&stars=true)](https://nodei.co/npm/yocto-daemon/)
+
 ![alt text](https://david-dm.org/yoctore/yocto-daemon.svg "Dependencies Status")
+[![Code Climate](https://codeclimate.com/github/yoctore/yocto-daemon/badges/gpa.svg)](https://codeclimate.com/github/yoctore/yocto-daemon)
+[![Test Coverage](https://codeclimate.com/github/yoctore/yocto-daemon/badges/coverage.svg)](https://codeclimate.com/github/yoctore/yocto-daemon/coverage)
+[![Issue Count](https://codeclimate.com/github/yoctore/yocto-daemon/badges/issue_count.svg)](https://codeclimate.com/github/yoctore/yocto-daemon)
+[![Build Status](https://travis-ci.org/yoctore/yocto-daemon.svg?branch=master)](https://travis-ci.org/yoctore/yocto-daemon)
+
 
 ## Overview
 
