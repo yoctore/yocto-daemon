@@ -206,9 +206,6 @@ DaemonWrapper.prototype.use = function (fn, exec, context) {
  * @return {Boolean} true if all is ok false otherwise
  */
 DaemonWrapper.prototype.createQueue = function () {
-  // save context
-  var context = this;
-
   // app is ready ??
   if (this.isReady(true)) {
     // call message
@@ -222,23 +219,23 @@ DaemonWrapper.prototype.createQueue = function () {
      */
     this.queue = async.priorityQueue(function (task, callback) {
       // new data ??
-      context.logger.info('[ Queue.run ] - Receiving new data. process it !');
+      this.logger.info('[ Queue.run ] - Receiving new data. process it !');
       // some debug data
-      context.logger.debug([ '[ Queue.run ] - Data is : ', utils.obj.inspect(task) ].join(' '));
+      this.logger.debug([ '[ Queue.run ] - Data is : ', utils.obj.inspect(task) ].join(' '));
       // process promise style
-      context.execFn.method.call(context.execFn.context, task).then(function (success) {
+      this.execFn.method.call(this.execFn.context, task).then(function (success) {
         // success so log it
-        context.logger.info('[ Queue.run ] - Success response given. Calling given callback');
+        this.logger.info('[ Queue.run ] - Success response given. Calling given callback');
         // call callback
         callback({ success : true, error : false, message : success, data : task });
-      }, function (error) {
+      }.bind(this), function (error) {
         // error so log it
-        context.logger.error([ '[ Queue.run ] - Error response given. Error is :',
+        this.logger.error([ '[ Queue.run ] - Error response given. Error is :',
                                 error, 'Calling given callback' ].join(' '));
         // call callback
         callback({ success : false, error : true, message : error, data : task });
-      });
-    }, this.thread);
+      }.bind(this));
+    }.bind(this), this.thread);
 
     /**
      * Queue will call this whenever all pending work is completed
@@ -246,37 +243,37 @@ DaemonWrapper.prototype.createQueue = function () {
      */
     this.queue.drain  = function () {
       // message
-      context.logger.info([ '[ Queue.drain ] - Pending work is complete. Sleeping',
-                      context.wait, 'seconds before next tick ...' ].join(' '));
+      this.logger.info([ '[ Queue.drain ] - Pending work is complete. Sleeping',
+                      this.wait, 'seconds before next tick ...' ].join(' '));
       // sleeping before next tick
-      sleep.sleep(context.wait);
+      sleep.sleep(this.wait);
       // check each time if queue ready
-      if (context.isReady(true)) {
+      if (this.isReady(true)) {
         // process data
-        context.chainPopulate();
+        this.chainPopulate();
       } else {
         // message pb
-        context.logger.error([ ' [ Queue.drain ] - A problem occured.',
+        this.logger.error([ ' [ Queue.drain ] - A problem occured.',
                                'Current queue process seems to be not ready yet' ].join(' '));
         // stopping queue process
-        context.stop();
+        this.stop();
       }
-    };
+    }.bind(this);
 
     /**
      * Saturate function when workers limit was pass
      */
     this.queue.saturated = function () {
       // warning message
-      context.logger.warning('[ Queue.saturated ] - Queue length hits the concurrency limit.');
-      context.logger.info([ '[ Queue.saturated ] - Changing Queue length concurrency',
+      this.logger.warning('[ Queue.saturated ] - Queue length hits the concurrency limit.');
+      this.logger.info([ '[ Queue.saturated ] - Changing Queue length concurrency',
                             'to an higher value.' ].join(' '));
-      context.logger.info([ '[ Queue.saturated ] - Concurrency limit changing from [',
-                             context.queue.concurrency, '] to [',
-                             context.queue.concurrency  * 2, ']' ].join(' '));
+      this.logger.info([ '[ Queue.saturated ] - Concurrency limit changing from [',
+                             this.queue.concurrency, '] to [',
+                             this.queue.concurrency  * 2, ']' ].join(' '));
       // changing value
-      context.queue.concurrency = context.queue.concurrency * 2;
-    };
+      this.queue.concurrency = this.queue.concurrency * 2;
+    }.bind(this);
 
     // default statement
     return _.isObject(this.queue) && !_.isEmpty(this.queue);
@@ -291,44 +288,41 @@ DaemonWrapper.prototype.createQueue = function () {
  * After too many errors current app exiting with code 1
  */
 DaemonWrapper.prototype.chainPopulate = function () {
-  // save current context
-  var context = this;
-
   // app is ready ?
   if (this.isReady(true)) {
     // main populate
     this.populate().then(function (item) {
-      context.logger.info([ '[ DaemonWrapper.chainPopulate ] - Populate function succeed.',
+      this.logger.info([ '[ DaemonWrapper.chainPopulate ] - Populate function succeed.',
                             (_.isEmpty(item.data) ? 'Nothing to process.' : ''),
                             'Waiting draining ...' ].join(' '));
       // is empty item ?
       if (_.isEmpty(item.data)) {
         // call drain
-        context.queue.drain();
+        this.queue.drain();
       }
-    }, function (error) {
+    }.bind(this), function (error) {
       // change nb error value
-      context.nbError += 1;
+      this.nbError += 1;
       // message
-      context.logger.error([ '[ DaemonWrapper.chainPopulate ] - An error occured during populate.',
+      this.logger.error([ '[ DaemonWrapper.chainPopulate ] - An error occured during populate.',
                              'Error is :', utils.obj.inspect(error) ].join(' '));
 
       // retry is over ??
-      if (context.nbError < context.errorRetry) {
-        context.logger.error(['[ DaemonWrapper.chainPopulate ] - Waiting', context.wait,
+      if (this.nbError < this.errorRetry) {
+        this.logger.error(['[ DaemonWrapper.chainPopulate ] - Waiting', this.wait,
                                'seconds before next tick ...' ].join(' '));
         // sleeping before next tick
-        sleep.sleep(context.wait);
+        sleep.sleep(this.wait);
         // here we go again
-        context.chainPopulate();
+        this.chainPopulate();
       } else {
         // log error message
-        context.logger.error(['[ DaemonWrapper.chainPopulate ] - Too many errors occured.',
+        this.logger.error(['[ DaemonWrapper.chainPopulate ] - Too many errors occured.',
                               'Retry limit was reached.' ].join(' '));
         // stop program
-        return context.stop();
+        return this.stop();
       }
-    });
+    }.bind(this));
   } else {
     // message pb
     this.logger.error([ ' [ DaemonWrapper.chainPopulate ] - A problem occured.',
@@ -349,8 +343,7 @@ DaemonWrapper.prototype.chainPopulate = function () {
 DaemonWrapper.prototype.populate = function () {
   // create promise
   var deferred = Q.defer();
-  // save current context
-  var context = this;
+
   // default message
   var message = [ '[ DaemonWrapper.populate ] - A problem occured.',
                   'Current queue process seems to be not ready yet.',
@@ -361,18 +354,18 @@ DaemonWrapper.prototype.populate = function () {
     // populate call
     this.populateFn.method.apply(this.populateFn.context).then(function (success) {
       // success retrieve message
-      context.logger.info([ '[ DaemonWrapper.populate ] - success response given.',
+      this.logger.info([ '[ DaemonWrapper.populate ] - success response given.',
                             'Try to normalize data before push into queue' ].join(' '));
       // default assignement
       var normalized = {
         data      : success,
-        priority  : context.DEFAULT_TASK_PRIORITY,
+        priority  : this.DEFAULT_TASK_PRIORITY,
         callback  : function () {
           // default message for default callback
-          context.logger.info([ '[ Queue.run.callback ] - default callback was called.',
+          this.logger.info([ '[ Queue.run.callback ] - default callback was called.',
                                 'Nothing to do here ...',
                                 'Prefer defined your own callback ...' ].join(' '));
-        }
+        }.bind(this)
       };
 
       // check struct of data if is an object ?
@@ -380,17 +373,17 @@ DaemonWrapper.prototype.populate = function () {
         _.has(success, 'priority') && _.isNumber(success.priority) &&
         _.has(success, 'callback') && _.isFunction(success.callback)) {
         // log message
-        context.logger.debug([ '[ DaemonWrapper.populate ] - Given populate function has',
+        this.logger.debug([ '[ DaemonWrapper.populate ] - Given populate function has',
                                  'return a valid structure. normalize it' ].join(' '));
         // process normalize
         normalized = success;
       }
 
       // debug log to see what we insert into queue
-      context.logger.debug([ '[ DaemonWrapper.populate ] - normalize data is :',
+      this.logger.debug([ '[ DaemonWrapper.populate ] - normalize data is :',
                            utils.obj.inspect(normalized) ].join(' '));
       // prepare message
-      context.logger.info([ '[ DaemonWrapper.populate ] - prepare to adding',
+      this.logger.info([ '[ DaemonWrapper.populate ] - prepare to adding',
                             normalized.data.length, 'new data on queue.' ].join(' '));
       // is array & data is empty ??
       if (_.isArray(normalized.data) && !_.isEmpty(normalized.data)) {
@@ -408,7 +401,7 @@ DaemonWrapper.prototype.populate = function () {
             _.has(d, 'priority') && _.isNumber(d.priority) &&
             _.has(d, 'callback') && _.isFunction(d.callback)) {
             // log message
-            context.logger.debug([ [ '[ DaemonWrapper.populate.item[', key, ']' ].join(''),
+            this.logger.debug([ [ '[ DaemonWrapper.populate.item[', key, ']' ].join(''),
                                        '] - return a valid structure. normalize it' ].join(' '));
             // change value
             value     = d.data;
@@ -417,33 +410,33 @@ DaemonWrapper.prototype.populate = function () {
           }
 
           // add value
-          context.add(value, priority, cback);
+          this.add(value, priority, cback);
 
           // is last item ? for callback
           if (_.last(normalized.data) === d) {
             // success callback here
             deferred.resolve(normalized);
           }
-        });
+        }.bind(this));
       } else {
         // is not empty ?
         if (!_.isEmpty(normalized.data)) {
           // add value
-          context.add(normalized.data, normalized.priority, normalized.callback);
+          this.add(normalized.data, normalized.priority, normalized.callback);
         }
         // success callback here
         deferred.resolve(normalized);
       }
-    }).catch(function (error) {
+    }.bind(this)).catch(function (error) {
       // default error message
       message = [ '[ DaemonWrapper.populate ] -',
                   'Given populate function has broadcasted an error.',
                   'Cannot populate.'].join(' ');
       // log error message
-      context.logger.error([ message, 'Error is :', utils.obj.inspect(error) ].join(' '));
+      this.logger.error([ message, 'Error is :', utils.obj.inspect(error) ].join(' '));
       // reject process
       deferred.reject(message);
-    });
+    }.bind(this));
   }
   // default statement
   return deferred.promise;

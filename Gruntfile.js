@@ -33,7 +33,7 @@ module.exports = function (grunt) {
         'check-leaks'    : true,
         'bail'           : false
       },
-      all     : [ 'tests/unit/*.js' ]
+      all     : [ 'test/*.js' ]
     }
   });
 

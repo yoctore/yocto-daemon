@@ -1,5 +1,5 @@
 var logger      = require('yocto-logger');
-var daemon      = require('../../src/index.js')(logger);
+var daemon      = require('../src/index.js')(logger);
 var _           = require('lodash');
 var Q           = require('q');
 
