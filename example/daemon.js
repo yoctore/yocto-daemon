@@ -57,12 +57,31 @@ var setd = [
 
 // used vars
 var datapopulate =  setd;
-var limit =  1;
+var limit = 1;
 var state = true;
 var processed = 1;
 
 // Process
 function pfn() {
+
+datapopulate = [
+{
+  priority : 1,
+  callback : function(data) {
+    console.log('ma callback 2');
+    console.log(data);
+  },
+  data : { key : ( 'VALUE 2 ' + new Date().getTime()  + ' - ' + Math.random() ) }
+},
+{
+  priority : 1,
+  callback : function(data) {
+    console.log('ma callback 1');
+    console.log(data);
+  },
+  data : { key : ( 'VALUE 1 ' + new Date().getTime()  + ' - ' + Math.random() ) }
+} 
+]
 
   var deferred = Q.defer();
   //deferred.resolve([]);
@@ -77,6 +96,7 @@ function pfn() {
     d = _.flatten(d);
   
     if (state) {
+      console.log('d =>', d);
       deferred.resolve(d);
       processed = 0;
     } else {
@@ -98,7 +118,6 @@ function pfn() {
 
 
 function efn(data) {
-  console.log('=>args', data);
   /*return new Promise(function(fulfill, reject) {
     fulfill('yeah exec');
   });*/

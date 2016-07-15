@@ -555,8 +555,7 @@ DaemonWrapper.prototype.isReady = function (showErrors) {
   // show errors ?
   if (_.isBoolean(showErrors) && showErrors) {
     // populate function
-    if (!_.isFunction(this.populateFn.method) ||
-        !_.isObject(this.populateFn.method.apply(this.populateFn.context))) {
+    if (!_.isFunction(this.populateFn.method)) {
       this.logger.error([ '[ DaemonWrapper.isReady ] - Wrapper is not ready.',
                              'populate Function is invalid.',
                              'Please call "use" function',
@@ -564,8 +563,7 @@ DaemonWrapper.prototype.isReady = function (showErrors) {
 
     }
     // exec function
-    if (!_.isFunction(this.execFn.method) ||
-        !_.isObject(this.execFn.method.apply(this.execFn.context))) {
+    if (!_.isFunction(this.execFn.method)) {
       this.logger.error([ '[ DaemonWrapper.isReady ] - Wrapper is not ready.',
                              'exec Function is invalid.',
                              'Please call "use" function',
@@ -575,9 +573,7 @@ DaemonWrapper.prototype.isReady = function (showErrors) {
 
   // default statement
   return _.isFunction(this.populateFn.method) &&
-         _.isObject(this.populateFn.method.apply(this.populateFn.context)) &&
-         _.isFunction(this.execFn.method) &&
-         _.isObject(this.execFn.method.apply(this.execFn.context));
+         _.isFunction(this.execFn.method);
 };
 
 /**

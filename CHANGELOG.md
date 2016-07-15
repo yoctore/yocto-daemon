@@ -1,3 +1,9 @@
+## 1.2.0 (2016-07-15)
+
+- Fix a bug when daemon start, in some case previous check call on isReady method failed async process
+- Update package
+- Update Async to v2.x.x
+
 ## 1.1.6 (2016-02-04) 
 
 - Fix a bug on queue concurency
